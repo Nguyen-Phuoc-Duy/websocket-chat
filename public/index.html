@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Chat</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="chat">
+      <div id="messages"></div>
+      <input type="text" id="username" placeholder="Your name..." />
+      <input type="text" id="input" placeholder="Type a message..." />
+      <button id="send">Send</button>
+    </div>
+    <script>
+      const socket = new WebSocket("ws://localhost:8080");
+
+      socket.onopen = () => {
+        console.log("Connected to server");
+      };
+
+      socket.onmessage = (event) => {
+        const messageData = JSON.parse(event.data);
+        const messageElement = document.createElement("div");
+        messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+        document.getElementById("messages").appendChild(messageElement);
+        document.getElementById("messages").scrollTop =
+          document.getElementById("messages").scrollHeight;
+      };
+
+      socket.onclose = () => {
+        console.log("Disconnected from server");
+      };
+
+      document.getElementById("send").addEventListener("click", () => {
+        const username = document.getElementById("username").value;
+        const input = document.getElementById("input");
+        const message = input.value;
+        if (username && message) {
+          socket.send(JSON.stringify({ username, message }));
+          input.value = "";
+        } else {
+          alert("Please enter your name and a message.");
+        }
+      });
+
+      document.getElementById("input").addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          document.getElementById("send").click();
+        }
+      });
+    </script>
+  </body>
+</html>
